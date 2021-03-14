@@ -25,7 +25,8 @@ app.post("/api/client/:street/:city/:postalCode/:country", async (req, res) => {
   const latClient = location.lat;
   const lngClient = location.lng;
   const response = await pgClient.query(
-    `SELECT name, id,lat,lng FROM public.commercial ORDER BY POINT(${latClient},${lngClient}) <-> geocode `
+    `SELECT name, id,lat,lng FROM public.commercial ORDER BY POINT($1,$2) <-> geocode `,
+    [latClient, lngClient]
   );
   let distance = [];
   //Merge with response
@@ -57,21 +58,26 @@ app.post("/api/commercial/all", async (req, res) => {
     const lat = location.lat;
     const lng = location.lng;
     await pgClient.query(
-      `UPDATE public.commercial SET lat=${lat},lng=${lng},geocode=POINT(${lat} ,${lng}) WHERE id =${commercial.id}`
+      `UPDATE public.commercial SET lat=$1,lng=$2,geocode=POINT($1 ,$2) WHERE id =${commercial.id}`,
+      [lat, lng]
     );
   });
   res.send({});
 });
 app.post("/api/new/:id", async (req, res) => {
   const { id } = req.params;
-  const { rows } = await pgClient.query(
-    `SELECT CONCAT(street, ', ', city ,' ',postalCode, ', ',country) AS adress FROM public.commercial where id=${id}`
+  const {
+    rows,
+  } = await pgClient.query(
+    `SELECT CONCAT(street, ', ', city ,' ',postalCode, ', ',country) AS adress FROM public.commercial where id=$1`,
+    [id]
   );
   const location = await geocoder(rows[0].adress);
   const lat = location.lat;
   const lng = location.lng;
   await pgClient.query(
-    `UPDATE public.commercial SET lat=${lat},lng=${lng},geocode=POINT(${lat} ,${lng}) WHERE id =${id}`
+    `UPDATE public.commercial SET lat=$1,lng=$2,geocode=POINT($1 ,$2) WHERE id =$3`,
+    [lat, lng,id]
   );
 
   res.send({});
