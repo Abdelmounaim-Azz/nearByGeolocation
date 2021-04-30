@@ -5,5 +5,5 @@ module.exports = {
   pgPassword: process.env.pgPassword,
   pgPort: 5432,
   serverPort: 5000,
-  googleApiKey: process.env.GEOCODER_API_KEY,
+  googleApiKey: process.env.GOOGLE_API_KEY,
 };
